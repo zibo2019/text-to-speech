@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文本朗读工具</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'bento-bg': '#0f0f23',
+                        'bento-card': '#1a1a2e',
+                        'bento-border': '#16213e',
+                        'bento-accent': '#667eea',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-bento-bg to-gray-900 text-white font-sans">
+    <!-- Main Container -->
+    <div class="container mx-auto p-4 md:p-6 lg:p-8 max-w-6xl">
+
+        <!-- Header Section -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-bento-accent to-purple-400 mb-4">
+                <i class="fas fa-volume-up mr-3"></i>文本朗读工具
+            </h1>
+            <p class="text-gray-400 text-lg">智能语音合成，支持 Markdown 格式清理</p>
+        </div>
+
+        <!-- Main Layout - Single Column for Text Tools -->
+        <div class="grid gap-6">
+
+            <!-- Text Input Section -->
+            <div class="bg-bento-card/50 backdrop-blur-sm rounded-3xl p-6 md:p-8 border border-bento-border shadow-2xl">
+                <!-- Input Header -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+                    <div class="flex items-center mb-4 sm:mb-0">
+                        <i class="fas fa-edit text-bento-accent text-xl mr-3"></i>
+                        <h2 class="text-xl font-semibold text-white">文本输入</h2>
+                    </div>
+
+                    <!-- Markdown Cleanup Toggle -->
+                    <label class="flex items-center space-x-3 bg-bento-bg/30 rounded-full px-4 py-2 cursor-pointer hover:bg-bento-bg/50 transition-all">
+                        <span class="text-sm text-gray-300">
+                            <i class="fab fa-markdown text-bento-accent mr-2"></i>清理 Markdown 格式
+                        </span>
+                        <input type="checkbox" id="cleanMarkdown" class="sr-only" checked>
+                        <div class="relative w-10 h-6">
+                            <div id="toggleBg" class="w-10 h-6 bg-gradient-to-r from-bento-accent to-purple-500 rounded-full shadow-inner transition-all duration-300"></div>
+                            <div id="toggleCircle" class="absolute top-1 left-1 bg-white w-4 h-4 rounded-full shadow transition-all duration-300 ease-in-out transform translate-x-4"></div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Text Area -->
+                <div class="relative">
+                    <textarea
+                        id="textInput"
+                        class="w-full h-64 md:h-80 lg:h-96 bg-bento-bg/50 border border-bento-border rounded-2xl p-6 text-white placeholder-gray-400 resize-none focus:outline-none focus:border-bento-accent focus:ring-2 focus:ring-bento-accent/20 transition-all"
+                        placeholder="在这里输入你想要朗读的文本...
+
+支持 Markdown 格式，勾选右上角选项可自动清理格式符号
+
+快捷键：Ctrl + Enter 开始朗读"
+                    >你好，訾博！欢迎使用文本朗读工具。这是一个简单易用的语音合成应用。
+
+# 支持 Markdown
+
+- 支持 **粗体** 和 *斜体*
+- 支持 `代码` 格式
+- 支持链接和图片
+
+勾选"清理 Markdown 格式"可以去除这些符号，只朗读纯文本内容。</textarea>
+                </div>
+
+                <!-- Footer Buttons -->
+                <div class="mt-4 flex gap-3 justify-end">
+                    <button onclick="clearText()"
+                        class="flex items-center space-x-2 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-medium py-2 px-4 rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                        <i class="fas fa-trash text-sm"></i>
+                        <span>清空</span>
+                    </button>
+
+                    <button onclick="pasteText()"
+                        class="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-indigo-600 hover:to-purple-600 text-white font-medium py-2 px-4 rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                        <i class="fas fa-paste text-sm"></i>
+                        <span>粘贴</span>
+                    </button>
+
+                    <button onclick="pasteAndSpeak()"
+                        class="flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-emerald-600 hover:to-teal-600 text-white font-medium py-2 px-4 rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                        <i class="fas fa-clipboard text-sm"></i>
+                        <span>粘贴并朗读</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Controls Section -->
+            <div class="grid md:grid-cols-2 gap-6">
+
+                <!-- Voice & Settings Panel -->
+                <div class="bg-bento-card/50 backdrop-blur-sm rounded-3xl p-6 border border-bento-border shadow-2xl">
+                    <div class="flex items-center mb-6">
+                        <i class="fas fa-cog text-bento-accent text-xl mr-3"></i>
+                        <h3 class="text-lg font-semibold text-white">语音设置</h3>
+                    </div>
+
+                    <!-- Voice Selection -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-300 mb-3">
+                            <i class="fas fa-microphone mr-2"></i>选择声音
+                        </label>
+                        <select id="voiceSelect" class="w-full bg-bento-bg/50 border border-bento-border rounded-xl p-3 text-white focus:outline-none focus:border-bento-accent focus:ring-2 focus:ring-bento-accent/20 transition-all">
+                            <option value="">正在加载语音...</option>
+                        </select>
+                    </div>
+
+                    <!-- Range Controls -->
+                    <div class="space-y-6">
+                        <!-- Rate Control -->
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <label class="text-sm font-medium text-gray-300">
+                                    <i class="fas fa-tachometer-alt mr-2"></i>语速
+                                </label>
+                                <span id="rateValue" class="text-bento-accent font-bold">1.0</span>
+                            </div>
+                            <input type="range" id="rateRange" min="0.5" max="2" step="0.1" value="1"
+                                class="w-full h-2 bg-bento-bg/50 rounded-lg appearance-none cursor-pointer slider">
+                        </div>
+
+                        <!-- Pitch Control -->
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <label class="text-sm font-medium text-gray-300">
+                                    <i class="fas fa-music mr-2"></i>音调
+                                </label>
+                                <span id="pitchValue" class="text-bento-accent font-bold">1.0</span>
+                            </div>
+                            <input type="range" id="pitchRange" min="0.5" max="2" step="0.1" value="1"
+                                class="w-full h-2 bg-bento-bg/50 rounded-lg appearance-none cursor-pointer slider">
+                        </div>
+
+                        <!-- Volume Control -->
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <label class="text-sm font-medium text-gray-300">
+                                    <i class="fas fa-volume-up mr-2"></i>音量
+                                </label>
+                                <span id="volumeValue" class="text-bento-accent font-bold">1.0</span>
+                            </div>
+                            <input type="range" id="volumeRange" min="0" max="1" step="0.1" value="1"
+                                class="w-full h-2 bg-bento-bg/50 rounded-lg appearance-none cursor-pointer slider">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Control Buttons & Status Panel -->
+                <div class="bg-bento-card/50 backdrop-blur-sm rounded-3xl p-6 border border-bento-border shadow-2xl">
+                    <div class="flex items-center mb-6">
+                        <i class="fas fa-play-circle text-bento-accent text-xl mr-3"></i>
+                        <h3 class="text-lg font-semibold text-white">播放控制</h3>
+                    </div>
+
+                    <!-- Control Buttons -->
+                    <div class="grid grid-cols-1 gap-4 mb-6">
+                        <button onclick="speakText()"
+                            class="flex items-center justify-center space-x-3 bg-gradient-to-r from-bento-accent to-purple-500 hover:from-purple-600 hover:to-pink-500 text-white font-bold py-4 px-6 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                            <i class="fas fa-play text-lg"></i>
+                            <span>开始朗读</span>
+                        </button>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <button onclick="pauseSpeech()"
+                                class="flex items-center justify-center space-x-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-orange-500 hover:to-red-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                                <i class="fas fa-pause"></i>
+                                <span class="hidden sm:inline">暂停</span>
+                            </button>
+
+                            <button onclick="stopSpeech()"
+                                class="flex items-center justify-center space-x-2 bg-gradient-to-r from-red-500 to-pink-500 hover:from-pink-500 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                                <i class="fas fa-stop"></i>
+                                <span class="hidden sm:inline">停止</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Status Display -->
+                    <div class="bg-bento-bg/30 rounded-2xl p-4 border border-bento-border/50">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-info-circle text-blue-400 mr-2"></i>
+                            <span class="text-sm font-medium text-gray-300">状态</span>
+                        </div>
+                        <div id="status" class="text-white font-medium">准备就绪</div>
+                    </div>
+
+                    <!-- Shortcut Tips -->
+                    <div class="mt-6 p-4 bg-gradient-to-r from-bento-bg/20 to-purple-900/20 rounded-2xl border border-purple-500/20">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-keyboard text-purple-400 mr-2"></i>
+                            <span class="text-sm font-medium text-purple-300">快捷键</span>
+                        </div>
+                        <p class="text-xs text-gray-400">Ctrl + Enter：开始/继续朗读</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let speechSynthesis = window.speechSynthesis;
+        let currentUtterance = null;
+
+        // Initialize toggle functionality
+        document.getElementById('cleanMarkdown').addEventListener('change', function() {
+            const toggleBg = document.getElementById('toggleBg');
+            const toggleCircle = document.getElementById('toggleCircle');
+
+            if (this.checked) {
+                toggleBg.className = 'w-10 h-6 bg-gradient-to-r from-bento-accent to-purple-500 rounded-full shadow-inner transition-all duration-300';
+                toggleCircle.className = 'absolute top-1 left-1 bg-white w-4 h-4 rounded-full shadow transition-all duration-300 ease-in-out transform translate-x-4';
+            } else {
+                toggleBg.className = 'w-10 h-6 bg-gray-600 rounded-full shadow-inner transition-all duration-300';
+                toggleCircle.className = 'absolute top-1 left-1 bg-white w-4 h-4 rounded-full shadow transition-all duration-300 ease-in-out transform translate-x-0';
+            }
+        });
+
+        // Custom slider and scrollbar styling
+        const style = document.createElement('style');
+        style.textContent = `
+            /* Slider styling */
+            .slider::-webkit-slider-thumb {
+                appearance: none;
+                height: 20px;
+                width: 20px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                cursor: pointer;
+                box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+                transition: all 0.3s ease;
+            }
+
+            .slider::-webkit-slider-thumb:hover {
+                transform: scale(1.2);
+                box-shadow: 0 6px 12px rgba(102, 126, 234, 0.5);
+            }
+
+            .slider::-moz-range-thumb {
+                height: 20px;
+                width: 20px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                cursor: pointer;
+                border: none;
+                box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+            }
+
+            /* Custom scrollbar for textarea */
+            #textInput::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            #textInput::-webkit-scrollbar-track {
+                background: rgba(15, 15, 35, 0.3);
+                border-radius: 10px;
+                border: 1px solid rgba(22, 33, 62, 0.5);
+            }
+
+            #textInput::-webkit-scrollbar-thumb {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                border-radius: 10px;
+                box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+                transition: all 0.3s ease;
+            }
+
+            #textInput::-webkit-scrollbar-thumb:hover {
+                background: linear-gradient(135deg, #764ba2, #8b5cf6);
+                box-shadow: 0 4px 8px rgba(102, 126, 234, 0.5);
+                transform: scaleX(1.2);
+            }
+
+            #textInput::-webkit-scrollbar-thumb:active {
+                background: linear-gradient(135deg, #8b5cf6, #a855f7);
+            }
+
+            /* Firefox scrollbar styling */
+            #textInput {
+                scrollbar-width: thin;
+                scrollbar-color: #667eea rgba(15, 15, 35, 0.3);
+            }
+        `;
+        document.head.appendChild(style);
+
+        function loadVoices() {
+            const voices = speechSynthesis.getVoices();
+            const voiceSelect = document.getElementById('voiceSelect');
+
+            voiceSelect.innerHTML = '';
+
+            if (voices.length === 0) {
+                voiceSelect.innerHTML = '<option value="">暂无可用语音</option>';
+                return;
+            }
+
+            voices.forEach((voice, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${voice.name} (${voice.lang})`;
+
+                if (voice.lang.includes('zh') || voice.lang.includes('CN')) {
+                    option.selected = true;
+                }
+
+                voiceSelect.appendChild(option);
+            });
+
+            if (!voiceSelect.value && voices.length > 0) {
+                voiceSelect.value = 0;
+            }
+        }
+
+        function updateRangeValues() {
+            document.getElementById('rateValue').textContent = document.getElementById('rateRange').value;
+            document.getElementById('pitchValue').textContent = document.getElementById('pitchRange').value;
+            document.getElementById('volumeValue').textContent = document.getElementById('volumeRange').value;
+        }
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+
+        function cleanMarkdownText(text) {
+            if (!document.getElementById('cleanMarkdown').checked) {
+                return text;
+            }
+
+            return text
+                // 清理标题符号
+                .replace(/^#{1,6}\s+/gm, '')
+                // 清理粗体和斜体
+                .replace(/\*\*(.*?)\*\*/g, '$1')
+                .replace(/\*(.*?)\*/g, '$1')
+                .replace(/__(.*?)__/g, '$1')
+                .replace(/_(.*?)_/g, '$1')
+                // 清理删除线
+                .replace(/~~(.*?)~~/g, '$1')
+                // 清理行内代码
+                .replace(/`([^`]+)`/g, '$1')
+                // 清理代码块
+                .replace(/```[\s\S]*?```/g, '')
+                .replace(/`{3,}[\s\S]*?`{3,}/g, '')
+                // 清理链接
+                .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+                .replace(/<[^>]+>/g, '')
+                // 清理图片
+                .replace(/!\[([^\]]*?)\]\([^\)]+\)/g, '图片: $1')
+                // 清理列表符号
+                .replace(/^\s*[-\*\+]\s+/gm, '')
+                .replace(/^\s*\d+\.\s+/gm, '')
+                // 清理引用
+                .replace(/^>\s+/gm, '')
+                // 清理表格分隔符
+                .replace(/\|/g, ' ')
+                .replace(/^[-\s|:]+$/gm, '')
+                // 清理多余的空行
+                .replace(/\n\s*\n\s*\n/g, '\n\n')
+                // 清理首尾空白
+                .trim();
+        }
+
+        function speakText() {
+            let text = document.getElementById('textInput').value.trim();
+
+            if (!text) {
+                updateStatus('请输入要朗读的文本');
+                return;
+            }
+
+            text = cleanMarkdownText(text);
+
+            if (speechSynthesis.speaking) {
+                if (speechSynthesis.paused) {
+                    speechSynthesis.resume();
+                    updateStatus('继续朗读中...');
+                    return;
+                } else {
+                    updateStatus('正在朗读中，请等待当前朗读结束');
+                    return;
+                }
+            }
+
+            currentUtterance = new SpeechSynthesisUtterance(text);
+
+            const voices = speechSynthesis.getVoices();
+            const selectedVoiceIndex = document.getElementById('voiceSelect').value;
+
+            if (selectedVoiceIndex && voices[selectedVoiceIndex]) {
+                currentUtterance.voice = voices[selectedVoiceIndex];
+            }
+
+            currentUtterance.rate = parseFloat(document.getElementById('rateRange').value);
+            currentUtterance.pitch = parseFloat(document.getElementById('pitchRange').value);
+            currentUtterance.volume = parseFloat(document.getElementById('volumeRange').value);
+
+            currentUtterance.onstart = function() {
+                updateStatus('正在朗读中...');
+            };
+
+            currentUtterance.onend = function() {
+                updateStatus('朗读完成');
+                currentUtterance = null;
+            };
+
+            currentUtterance.onerror = function(event) {
+                updateStatus('朗读出错: ' + event.error);
+                currentUtterance = null;
+            };
+
+            currentUtterance.onpause = function() {
+                updateStatus('朗读已暂停');
+            };
+
+            speechSynthesis.speak(currentUtterance);
+        }
+
+        function pauseSpeech() {
+            if (speechSynthesis.speaking && !speechSynthesis.paused) {
+                speechSynthesis.pause();
+                updateStatus('朗读已暂停');
+            } else if (speechSynthesis.paused) {
+                speechSynthesis.resume();
+                updateStatus('继续朗读中...');
+            } else {
+                updateStatus('当前没有朗读内容');
+            }
+        }
+
+        function stopSpeech() {
+            if (speechSynthesis.speaking) {
+                speechSynthesis.cancel();
+                updateStatus('朗读已停止');
+                currentUtterance = null;
+            } else {
+                updateStatus('当前没有朗读内容');
+            }
+        }
+
+        // Event listeners
+        document.getElementById('rateRange').addEventListener('input', updateRangeValues);
+        document.getElementById('pitchRange').addEventListener('input', updateRangeValues);
+        document.getElementById('volumeRange').addEventListener('input', updateRangeValues);
+
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = loadVoices;
+        }
+
+        window.addEventListener('load', function() {
+            loadVoices();
+            updateRangeValues();
+
+            setTimeout(function() {
+                if (document.getElementById('voiceSelect').innerHTML === '<option value="">正在加载语音...</option>') {
+                    loadVoices();
+                }
+            }, 1000);
+        });
+
+        document.getElementById('textInput').addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                speakText();
+            }
+        });
+
+        // Clear text function
+        function clearText() {
+            const textInput = document.getElementById('textInput');
+            textInput.value = '';
+            textInput.focus();
+            updateStatus('文本已清空');
+        }
+
+        // Paste text function
+        async function pasteText() {
+            try {
+                // 检查浏览器是否支持剪贴板API
+                if (!navigator.clipboard) {
+                    updateStatus('此浏览器不支持剪贴板功能');
+                    return;
+                }
+
+                // 读取剪贴板内容
+                const clipboardText = await navigator.clipboard.readText();
+
+                if (!clipboardText.trim()) {
+                    updateStatus('剪贴板为空');
+                    return;
+                }
+
+                // 粘贴到文本框
+                const textInput = document.getElementById('textInput');
+                textInput.value = clipboardText;
+                textInput.focus();
+
+                updateStatus('已粘贴剪贴板内容');
+
+            } catch (error) {
+                updateStatus('读取剪贴板失败，请手动粘贴');
+                console.error('剪贴板访问失败:', error);
+            }
+        }
+
+        // Paste and speak function
+        async function pasteAndSpeak() {
+            try {
+                // 检查浏览器是否支持剪贴板API
+                if (!navigator.clipboard) {
+                    updateStatus('此浏览器不支持剪贴板功能');
+                    return;
+                }
+
+                // 读取剪贴板内容
+                const clipboardText = await navigator.clipboard.readText();
+
+                if (!clipboardText.trim()) {
+                    updateStatus('剪贴板为空');
+                    return;
+                }
+
+                // 粘贴到文本框
+                const textInput = document.getElementById('textInput');
+                textInput.value = clipboardText;
+                textInput.focus();
+
+                // 短暂延迟后自动开始朗读
+                setTimeout(() => {
+                    speakText();
+                }, 300);
+
+            } catch (error) {
+                updateStatus('读取剪贴板失败，请手动粘贴');
+                console.error('剪贴板访问失败:', error);
+            }
+        }
+    </script>
+</body>
+</html>
